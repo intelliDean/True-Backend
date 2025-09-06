@@ -1,4 +1,4 @@
-# Use the official Rust image as the base
+# Build stage
 FROM rust:1.82 AS builder
 
 # Set working directory
@@ -9,10 +9,10 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Cargo.toml and Cargo.lock
+# Copy Cargo files to cache dependencies
 COPY Cargo.toml Cargo.lock ./
 
-# Create a dummy main.rs to cache dependencies
+# Create a dummy main.rs to build dependencies
 RUN mkdir src && echo "fn main() {}" > src/main.rs
 RUN cargo build --release
 RUN rm -rf src
@@ -23,7 +23,7 @@ COPY . .
 # Build the application
 RUN cargo build --release
 
-# Final stage: Use a smaller image for runtime
+# Runtime stage
 FROM rust:1.82-slim
 
 # Install runtime dependencies
@@ -31,7 +31,7 @@ RUN apt-get update && apt-get install -y \
     libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the compiled binary
+# Copy the compiled binary from the builder stage
 COPY --from=builder /usr/src/app/target/release/backend /usr/local/bin/backend
 
 # Set environment variables
