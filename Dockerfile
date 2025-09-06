@@ -1,5 +1,5 @@
 # Build stage
-FROM rust:1.82 AS builder
+FROM rust:nightly AS builder
 
 # Set working directory
 WORKDIR /usr/src/app
@@ -24,7 +24,7 @@ COPY . .
 RUN cargo build --release
 
 # Runtime stage
-FROM rust:1.82-slim
+FROM rust:nightly-slim
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
